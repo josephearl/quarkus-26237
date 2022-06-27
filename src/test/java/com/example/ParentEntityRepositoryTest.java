@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -59,6 +60,19 @@ class ParentEntityRepositoryTest {
     @Transactional
     void shouldFindParentWithActiveChildrenStreamToList() {
         List<ParentEntity> ps = parentEntityRepository.find("id = :id", Parameters.with("id", PARENT_ID)).filter("active").stream().toList();
+
+        assertEquals(1, ps.size());
+        assertEquals(1, ps.get(0).getChildren().size());
+    }
+
+    // This test also fails
+    @Test
+    @Transactional
+    void shouldFindParentWithActiveChildrenStreamToListAndClosingStream() {
+        List<ParentEntity> ps;
+        try (Stream<ParentEntity> ss = parentEntityRepository.find("id = :id", Parameters.with("id", PARENT_ID)).filter("active").stream()) {
+            ps = ss.toList();
+        }
 
         assertEquals(1, ps.size());
         assertEquals(1, ps.get(0).getChildren().size());
